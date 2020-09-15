@@ -1,0 +1,15 @@
+cpFilePath:E003_A00.txt
+tapsFilePath:tap_coordinates.txt
+buildingHeight:0.4572
+buildingWidth:0.1143
+buildingDepth:0.0762
+geometricScale:400.0
+aerodynamicRoughness:0.03
+referenceHeight:0.4572
+referenceWindSpeed:12.6
+gradientHeight:1.47
+gradientWindSpeed:15.0
+airDensity:1.25
+windDirection:0.0
+brokenTaps:none
+
