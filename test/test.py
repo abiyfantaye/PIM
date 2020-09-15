@@ -29,9 +29,19 @@ scale = 400.0
 broken_taps = []
 
 
-caarc = pim.PIM(cp_file_name, tap_file_name,wind_direction, building_height, 
-            building_width, building_depth, z0, u_ref, z_ref, gradient_height, 
-            gradient_wind_speed, scale, broken_taps)
+caarc = pim.PIM(cp_file_name=cp_file_name,
+                tap_file_name=tap_file_name,
+                wind_direction=wind_direction,
+                building_width=building_width, 
+                building_depth=building_depth,                 
+                building_height=building_height, 
+                z0=z0, 
+                u_ref=u_ref, 
+                z_ref=z_ref, 
+                gradient_height=gradient_height, 
+                gradient_wind_speed=gradient_wind_speed,
+                scale=scale,
+                broken_taps=broken_taps)
 
 
 

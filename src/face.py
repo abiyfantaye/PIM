@@ -7,7 +7,7 @@ Represents face of the building model.
   
 class Face:
     
-    def __init__(self, name, height, width, normal):
+    def __init__(self, name, width, height, normal):
         self.name = name        #name of the face
         self.width  = width     #width of the face 
         self.height = height    #height of the face

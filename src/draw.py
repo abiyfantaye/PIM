@@ -11,44 +11,81 @@ class Plotter:
         self.model = model 
         self.plot_top = plot_top
         
-    def _plot_face_frame(self, ax, face):
-        ax.axis('off')
-        border = patches.Rectangle(-face.width/2.0,0.0 ,face.width , face.height)
-        ax.add_patch(border)
-        ax.set_title(face.name)
-        ax.set_ylim(0.0, face.height)   
+    def _get_face_coordinates(self, face):
+        n_taps  = len(face.taps)
+        x = np.zeros(n_taps)
+        y = np.zeros(n_taps)
+        
+        for i in range(n_taps):
+            if face.name == 'North':
+                x[i] = -face.taps[i].coord.y 
+                y[i] = face.taps[i].coord.z 
+            if face.name == 'West':
+                x[i] = face.taps[i].coord.x  
+                y[i] = face.taps[i].coord.z 
+            if face.name == 'South':
+                x[i] = face.taps[i].coord.y 
+                y[i] = face.taps[i].coord.z 
+            if face.name == 'East':
+                x[i] = -face.taps[i].coord.x 
+                y[i] = face.taps[i].coord.z 
+            if face.name == 'Top':
+                x[i] = face.taps[i].coord.y 
+                y[i] = -face.taps[i].coord.x
+                        
+        return x, y
+
     
     def plot(self):
         
-
         n_plots = len(self.model.faces)
-        if self.plot_top == False:
-            n_plots -= 1
-            
-        fig = plt.figure(facecolor='white')
-        markersize = 5
-        linewidth = 1.25   
+        scale = self.model.scale
         
         #ratio to adjust proportion of each subplot
         width_ratio = np.zeros(n_plots)
 
         for i in range(n_plots):        
             width_ratio[i] = self.model.faces[i].width/self.model.faces[0].width
+                
+        fig = plt.figure(facecolor='white')
+        markersize = 5
+        linewidth = 1.25  
         
-        gs = gridspec.GridSpec(1, n_plots, width_ratios=width_ratio, wspace=0.1) 
-        gs0 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[4])
+        gs = gridspec.GridSpec(1, n_plots, width_ratios=width_ratio, wspace=0.1, hspace=0.001) 
+        gs0 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], height_ratios=[1.0, 6.0])
 
-        for i in range(n_plots):  
-            if i == n_plots-1:
-                ax = fig.add_subplot(gs0[0])
-            else :
-                ax = fig.add_subplot(gs[i])
-            face = self.model.faces[i]            
-            ax.set_title(face.name)
-            ax.set_xlim(0.00,face.width) 
-            ax.set_ylim(0.00,face.height) 
-            ax.set_xticks([])
-            ax.set_yticks([])
+        #plot the four side faces
+        for i in range(n_plots-1):   
+            face = self.model.faces[i]         
+            ax = fig.add_subplot(gs[i])
+            x,y = self._get_face_coordinates(face)
+            ax.plot(scale*x, scale*y, '+', markersize=markersize)
+            
+#            for j in range(len(face.taps)):
+#                ax.text(scale*x[j], scale*y[j], face.taps[j].name, fontsize=8,rotation=45)
+
+            ax.set_title(face.name + ' Wall')
+            
+            ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
+            ax.set_ylim(0.00,scale*face.height)  
+            
+            if face.name != 'North':
+                ax.set_yticks([])
+
+        
+        #plot the roof 
+        if self.plot_top == True:
+            face = self.model.faces[-1]             
+            ax = fig.add_subplot(gs0[0])
+            x,y = self._get_face_coordinates(face)
+            ax.plot(scale*x, scale*y, '+', markersize=markersize)
+                
+    #            for j in range(len(face.taps)):
+    #                ax.text(scale*x[j], scale*y[j], face.taps[j].name, fontsize=8,rotation=45)
+    
+            ax.set_title('Roof')
+            ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
+            ax.set_ylim(-scale*face.height/2.0, scale*face.height/2.0)
 
         plt.tight_layout()
         plt.show()

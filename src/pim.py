@@ -16,9 +16,9 @@ class PIM:
                  cp_file_name, 
                  tap_file_name,
                  wind_direction,
-                 building_height, 
                  building_width, 
-                 building_depth, 
+                 building_depth,                  
+                 building_height, 
                  z0, u_ref, 
                  z_ref, 
                  gradient_height, 
@@ -96,11 +96,11 @@ class PIM:
         """
         #Create each face
         
-        self.faces.append(Face('North',self.building_height, self.building_width, Point(-1.0, 0.0, 0.0)))        
-        self.faces.append(Face('West',self.building_height, self.building_depth, Point(0.0, -1.0, 0.0)))
-        self.faces.append(Face('South',self.building_height, self.building_width, Point(1.0, 0.0, 0.0)))
-        self.faces.append(Face('East',self.building_height, self.building_depth, Point(0.0, 1.0, 0.0)))
-        self.faces.append(Face('Top',self.building_width, self.building_depth, Point(0.0, 0.0, 1.0)))
+        self.faces.append(Face('North', self.building_width,self.building_height, Point(-1.0, 0.0, 0.0)))        
+        self.faces.append(Face('West', self.building_depth,self.building_height, Point(0.0, -1.0, 0.0)))
+        self.faces.append(Face('South', self.building_width,self.building_height, Point(1.0, 0.0, 0.0)))
+        self.faces.append(Face('East', self.building_depth,self.building_height, Point(0.0, 1.0, 0.0)))
+        self.faces.append(Face('Top', self.building_width, self.building_depth, Point(0.0, 0.0, 1.0)))
         
         self.face_count  = len(self.faces)
 
