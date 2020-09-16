@@ -35,7 +35,48 @@ class Plotter:
                         
         return x, y
 
-    
+    def plot_key(self, ax):
+        """
+        Plots the key showing the building and wind direction.  
+        """
+        linewidth = 1.5
+        ox = 0.5
+        oy = 0.25
+        width = 0.8
+        depth = 0.15
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        
+        ax.plot([ox,ox], [0.15*oy, oy-depth/2.0], 'k-.', linewidth=1.25)
+        border = patches.Rectangle((ox-width/2.0, oy-depth/2.0 ), width , depth, linewidth=linewidth,edgecolor='k',facecolor='grey')
+        ax.add_patch(border)
+
+        style="Simple,tail_width=0.75,head_width=6,head_length=12"
+        kw = dict(arrowstyle=style, color="k")     
+        
+        arw1_r = oy-depth/2.0
+        
+        arw1_x1 = ox + 1.5*arw1_r*np.sin(np.deg2rad(45))
+        arw1_x2 = ox
+        arw1_y1 = arw1_r - 1.1*arw1_r*np.cos(np.deg2rad(45))
+        arw1_y2 = oy-depth/2.0
+        
+        arw1 = patches.FancyArrowPatch(posA=(arw1_x1, arw1_y1), posB=(arw1_x2, arw1_y2), **kw)
+        
+        ax.text(0.1, 0.0, "Wind direction: $" + str(int(self.model.wind_direction)) + '^0$', fontsize=16)
+
+        ax.add_patch(arw1)
+
+        ax.set_yticks([])
+        ax.set_xticks([])
+        ax.set_xlim(0.0, 1.0)
+        ax.set_ylim(0.0, 1.0)
+                        
+
+        
     def plot(self):
         
         n_plots = len(self.model.faces)
@@ -48,11 +89,28 @@ class Plotter:
             width_ratio[i] = self.model.faces[i].width/self.model.faces[0].width
                 
         fig = plt.figure(facecolor='white')
+        
+        font_size=18
+        legend_font_size=20
+        axis_font_size=14
+        
+        font = {'family' : 'Times New Roman','weight' : 'normal', 'size'   : font_size}
+        plt.rcParams['xtick.major.pad'] = 10
+        plt.rcParams['ytick.major.pad'] = 10
+        plt.rc('font', **font)    
+        plt.rc('axes', labelsize=font_size)    # fontsize of the x and y labels
+        plt.rc('axes', titlesize=font_size)  # fontsize of the axes title
+        plt.rc('xtick', labelsize=axis_font_size)    # fontsize of the tick labels
+        plt.rc('ytick', labelsize=axis_font_size)    # fontsize of the tick labels
+        plt.rc('axes', linewidth=1.5)    
+        plt.rc('legend', fontsize=legend_font_size)
+        plt.rc('text', usetex=True)
+        
         markersize = 5
         linewidth = 1.25  
         
         gs = gridspec.GridSpec(1, n_plots, width_ratios=width_ratio, wspace=0.1, hspace=0.001) 
-        gs0 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], height_ratios=[1.0, 6.0])
+        gs0 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], height_ratios=[1.0, 5.0])
 
         #plot the four side faces
         for i in range(n_plots-1):   
@@ -86,6 +144,15 @@ class Plotter:
             ax.set_title('Roof')
             ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
             ax.set_ylim(-scale*face.height/2.0, scale*face.height/2.0)
+            ax.yaxis.set_ticks_position('right')
+            
+        #plot the key 
+            
+        ax = fig.add_subplot(gs0[1])
+        self.plot_key(ax)
+
+            
+        fig.set_size_inches(35/2.54, 50/2.54)
 
         plt.tight_layout()
         plt.show()

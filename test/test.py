@@ -14,12 +14,13 @@ import pim as pim
 import draw as draw
 
 
-cp_file_name = 'E003_A00.txt'
+cp_file_name = '../data/E002_A00.txt'
 tap_file_name = '../data/tap_file.txt'
-wind_direction = 0.0
+wind_direction = 30.0
 building_height = 0.4572
 building_width = 0.1143
 building_depth = 0.0762
+
 z0 = 0.03
 z_ref = 0.4572
 u_ref = 12.6            

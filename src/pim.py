@@ -49,20 +49,20 @@ class PIM:
         self.scale = scale
         self.broken_taps = broken_taps
         self.faces = []
-        self.taps  = []    
+        self.taps  = []
+        self.cp = []
         self.__create_taps()
         self.__create_faces()
-        
 #        self.__read_cp_data()
 #        self.__correct_cp_to_building_height()
 
     def __read_cp_data(self):
-        cp_data = np.loadtxt(self.Cp_file_path)
+        cp_raw = np.loadtxt(self.cp_file_name)
 
-        self.cp_data = np.zeros((self.tap_count, np.shape(cp_data)[1]))
+        self.cp = np.zeros((self.tap_count, np.shape(cp_raw)[1]))
         
         for i in range(self.tap_count):
-            self.cp_data[i,:] = cp_data[i,:]
+            self.cp[i,:] = cp_raw[i,:]
         
         #Take only the first 120second 
 #        self.cp_data = self.cp_data[:,0:48000]
