@@ -20,10 +20,11 @@ wind_direction = 30.0
 building_height = 0.4572
 building_width = 0.1143
 building_depth = 0.0762
-
+sampling_rate = 400
+test_duration = 120
 z0 = 0.03
 z_ref = 0.4572
-u_ref = 12.6            
+u_ref = 12.6         
 gradient_height = 1.47
 gradient_wind_speed = 15.0
 scale = 400.0
@@ -36,6 +37,8 @@ caarc = pim.PIM(cp_file_name=cp_file_name,
                 building_width=building_width, 
                 building_depth=building_depth,                 
                 building_height=building_height, 
+                sampling_rate=sampling_rate,
+                test_duration=test_duration,
                 z0=z0, 
                 u_ref=u_ref, 
                 z_ref=z_ref, 
@@ -46,8 +49,10 @@ caarc = pim.PIM(cp_file_name=cp_file_name,
 
 
 
-a  = draw.Plotter(caarc)
+#plt.plot(caarc.time, caarc.faces[0].taps[0].cp)
 
+#caarc.tap_count
+a  = draw.Plotter(caarc)
 a.plot()
 
 #

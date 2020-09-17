@@ -19,6 +19,8 @@ class PIM:
                  building_width, 
                  building_depth,                  
                  building_height, 
+                 sampling_rate,
+                 test_duration,
                  z0, u_ref, 
                  z_ref, 
                  gradient_height, 
@@ -41,6 +43,8 @@ class PIM:
         self.building_height = building_height
         self.building_width = building_width
         self.building_depth = building_depth
+        self.sampling_rate = sampling_rate
+        self.test_duration = test_duration
         self.z0 = z0
         self.u_ref = u_ref
         self.z_ref = z_ref            
@@ -50,22 +54,25 @@ class PIM:
         self.broken_taps = broken_taps
         self.faces = []
         self.taps  = []
-        self.cp = []
+        self.cp_raw = []
         self.__create_taps()
         self.__create_faces()
-#        self.__read_cp_data()
+        self.__read_cp_data()
 #        self.__correct_cp_to_building_height()
 
     def __read_cp_data(self):
         cp_raw = np.loadtxt(self.cp_file_name)
+        
+        self.Nt = np.shape(cp_raw)[1]
+        self.time_step = 1.0/self.sampling_rate
+        self.time = np.arange(0.0, self.test_duration, self.time_step)
+        self.cp_raw = np.zeros((self.tap_count, self.Nt))
 
-        self.cp = np.zeros((self.tap_count, np.shape(cp_raw)[1]))
-        
         for i in range(self.tap_count):
-            self.cp[i,:] = cp_raw[i,:]
-        
-        #Take only the first 120second 
-#        self.cp_data = self.cp_data[:,0:48000]
+            self.cp_raw[i,:] = cp_raw[i,:]
+            self.taps[i].cp = cp_raw[i,:]
+                    
+            
 
     def __create_taps(self):
         """
@@ -85,16 +92,13 @@ class PIM:
             tap_index += 1   
         
         self.tap_count = len(self.taps)
-
-#        self.__assign_tap_faces()
-#        self.__create_neighbouring_taps()
         
     def __create_faces(self):    
         """
         Creates each faces as 'North', 'South', 'East', 'West', 'Top'.
         
         """
-        #Create each face
+        #create each face
         
         self.faces.append(Face('North', self.building_width,self.building_height, Point(-1.0, 0.0, 0.0)))        
         self.faces.append(Face('West', self.building_depth,self.building_height, Point(0.0, -1.0, 0.0)))
@@ -110,7 +114,9 @@ class PIM:
                 if self.taps[i].face == self.faces[j].name:
                     self.faces[j].taps.append(self.taps[i])
 
-                
+
+
+         
 #    def __create_neighbouring_taps(self):    
 #        """
 #        Creates the neighbouring taps depending on the face where the tap is located.
