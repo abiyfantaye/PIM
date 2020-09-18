@@ -5,6 +5,7 @@ from matplotlib import gridspec
 from scipy.interpolate import griddata
 from scipy import interpolate
 import numpy as np
+import CWE as cwe
 
 class Plotter:
 
@@ -81,10 +82,37 @@ class Plotter:
         X_face, Y_face = np.meshgrid(x_grid_face, y_grid_face)
         Z_face = f(x_grid_face, y_grid_face)
         return X_face, Y_face, Z_face
-  
-#    def _get_data_range(self, data):
-                
-    def plot(self, value_type = 'mean'):
+    
+    def plot_wind_profile(self, value_type = 'mean'):
+        #Mean velocity profile comparison with experement
+        plt1, fig = cwe.setup_plot(plt, 22, 18, 18)
+        
+        ax = fig.add_subplot(1, 1, 1)    
+        ax.tick_params(direction='in', size=8)    
+        ax.set_xlim([0,1.25])
+        ax.set_ylim([0,4])            
+        H = self.model.building_height
+        z = self.model.wind_profile[:,0]
+        Uav = self.model.wind_profile[:,1]
+        Iu = self.model.wind_profile[:,2]/100.0
+        U_H = self.model.get_Uav(H)
+        
+        ax.set_ylabel('$z/H$')        
+        ax.set_xlabel(r'$Uav/U_{H}, Iu$') 
+        ax.plot(Uav/U_H, z/H,  'bo', markersize=8, markerfacecolor='none',markeredgewidth=1.5)
+        ax.plot(Iu, z/H, 'rs', markersize=8, markerfacecolor='none',markeredgewidth=1.5)
+            
+        plt1.grid(linestyle='--')     
+        
+        fig.set_size_inches(15/2.54, 18/2.54)
+        ax.legend(['Uav', '$Iu$'], loc=0) 
+        plt1.tight_layout()
+#        plt1.savefig('Plots/blwtl_vs_esdu.pdf')
+#        plt1.savefig('Plots/blwtl_vs_esdu.png')
+        plt1.show()
+        
+        
+    def plot_cp(self, value_type = 'mean'):
         
         n_plots = len(self.model.faces)
         scale = self.model.scale
@@ -100,6 +128,7 @@ class Plotter:
         font_size=18
         legend_font_size=20
         axis_font_size=14
+        num_contours = 35
         
         font = {'family' : 'Times New Roman','weight' : 'normal', 'size'   : font_size}
         plt.rcParams['xtick.major.pad'] = 10
@@ -114,7 +143,6 @@ class Plotter:
         plt.rc('text', usetex=True)
         
         markersize = 4
-        linewidth = 1.25  
         
         gs = gridspec.GridSpec(1, n_plots, width_ratios=width_ratio, wspace=0.1, hspace=0.001) 
         gs0 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs[4], height_ratios=[1.0, 3.0, 1.5])
@@ -125,13 +153,13 @@ class Plotter:
         color_map = 'jet'
                 
         if value_type == 'mean':
-            data_range = np.linspace(-1.5, 1.0, num=35)
+            data_range = np.linspace(-1.5, 1.0, num=num_contours)
             ticks=np.linspace(-1.5, 1.0, num=6)
         if value_type == 'rms':
-            data_range = np.linspace(0.0, 0.5, num=35)
+            data_range = np.linspace(0.0, 0.5, num=num_contours)
             ticks=np.linspace(0.0, 0.6, num=5)
         if value_type == 'inst':
-            data_range = np.linspace(-1.5, 1.5, num=35)
+            data_range = np.linspace(-1.5, 1.5, num=num_contours)
             ticks=np.linspace(-1.5, 1.0, num=6)
 
         interp_method = 'linear'
@@ -145,20 +173,17 @@ class Plotter:
             
             X,Y,Z = self._interpolate_cp(face, nx, ny, value_type, method=interp_method)            
             
+#            cs = ax.contour(scale*X, scale*Y, Z, data_range[0:num_contours:4], colors='k',alpha=0.75, linewidths=0.75, linestyles='solid')            
             cs = ax.contour(scale*X, scale*Y, Z, data_range, colors='k',alpha=0.75, linewidths=0.75, linestyles='solid')            
 #            ax.clabel(cs, fmt='%2.1f', colors='k', fontsize=14)
 
             cs = ax.contourf(scale*X, scale*Y, Z, data_range, cmap=color_map)
-            
 
             ax.set_title(face.plot_name)
             ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
             ax.set_ylim(0.00,scale*face.height)  
             if face.name != 'North':
                 ax.set_yticks([])            
-            
-#            ax.clabel(cs, fmt='%2.1f', colors='k', fontsize=12, inline=1)
-
                 
         #plot the roof 
         if self.plot_top == True:
@@ -182,16 +207,12 @@ class Plotter:
         ax.set_visible(False)
         cbar = fig.colorbar(cs, ax=ax, fraction=1.0, aspect=12.5, ticks=ticks)
         cbar.ax.set_ylabel('$C_p$')   
-
         
         #plot the key 
         ax = fig.add_subplot(gs0[2])
         self.plot_key(ax)
         
-
-        
         
         fig.set_size_inches(35/2.54, 50/2.54)
-
         plt.tight_layout()
         plt.show()

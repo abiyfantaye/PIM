@@ -16,44 +16,55 @@ import draw as draw
 
 cp_file_name = '../data/E002_A00.txt'
 tap_file_name = '../data/tap_file.txt'
+profile_file_name = '../data/wind_profile/t2exp3.txt'
+exposure_name = 'Open'
+correct_cp = True
 wind_direction = 30.0
 building_height = 0.4572
 building_width = 0.1143
 building_depth = 0.0762
 sampling_rate = 400
 test_duration = 120
+start_time = 0.0
+end_time = test_duration
 z0 = 0.03
 z_ref = 0.4572
 u_ref = 12.6         
-gradient_height = 1.47
-gradient_wind_speed = 15.0
+gradient_height = 1.4732
 scale = 400.0
-broken_taps = ['110', '1014', '2315', '613']
+broken_taps = ['110','613','1014', '1213', '2315', ]
 
 
 caarc = pim.PIM(cp_file_name=cp_file_name,
                 tap_file_name=tap_file_name,
+                profile_file_name = profile_file_name,
+                exposure_name = exposure_name,
                 wind_direction=wind_direction,
+                correct_cp=correct_cp,
                 building_width=building_width, 
                 building_depth=building_depth,                 
                 building_height=building_height, 
                 sampling_rate=sampling_rate,
                 test_duration=test_duration,
+                start_time=start_time,
+                end_time = end_time,
                 z0=z0, 
                 u_ref=u_ref, 
                 z_ref=z_ref, 
                 gradient_height=gradient_height, 
-                gradient_wind_speed=gradient_wind_speed,
                 scale=scale,
                 broken_taps=broken_taps)
 
 
 
+caarc.create_rings()
+caarc.faces[0].create_tributary_area()
 #plt.plot(caarc.time, caarc.faces[0].taps[0].cp)
 
 #caarc.tap_count
 a  = draw.Plotter(caarc)
-a.plot(value_type='rms')
+a.plot_cp(value_type='mean')
+a.plot_wind_profile()
 
 #
 #caarc.plot_faces_with_taps()

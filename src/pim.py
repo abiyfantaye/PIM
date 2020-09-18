@@ -16,15 +16,19 @@ class PIM:
                  cp_file_name, 
                  tap_file_name,
                  wind_direction,
+                 profile_file_name,
+                 exposure_name,
+                 correct_cp,
                  building_width, 
                  building_depth,                  
                  building_height, 
                  sampling_rate,
                  test_duration,
+                 start_time,
+                 end_time,
                  z0, u_ref, 
                  z_ref, 
                  gradient_height, 
-                 gradient_wind_speed, 
                  scale, 
                  broken_taps):
         """Constructs PIM.
@@ -40,6 +44,9 @@ class PIM:
         self.cp_file_name = cp_file_name
         self.tap_file_name = tap_file_name
         self.wind_direction = wind_direction
+        self.profile_file_name = profile_file_name
+        self.exposure_name = exposure_name
+        self.correct_cp = correct_cp
         self.building_height = building_height
         self.building_width = building_width
         self.building_depth = building_depth
@@ -49,29 +56,43 @@ class PIM:
         self.u_ref = u_ref
         self.z_ref = z_ref            
         self.gradient_height = gradient_height
-        self.gradient_wind_speed = gradient_wind_speed
         self.scale = scale
         self.broken_taps = broken_taps
+        self.start_time = start_time
+        self.end_time = end_time
         self.faces = []
         self.taps  = []
-        self.cp_raw = []
+        self.wind_profile = []
+        self.ring_height = []
+        self.ring_taps = []
         self._create_taps()
-        self._create_faces()
+        self._create_faces()        
         self._fix_broken_taps() # should be called after creating the faces
-#        self.__correct_cp_to_building_height()
 
     def _read_cp_data(self):
+        
+        self.time_step = 1.0/self.sampling_rate
+        
         cp_raw = np.loadtxt(self.cp_file_name)
         
+        if self.correct_cp:
+            cp_raw *= self._get_cp_correction_factor()
+
+        start_index = int(np.shape(cp_raw)[1]*self.start_time/self.test_duration)
+        end_index = int(np.shape(cp_raw)[1]*self.end_time/self.test_duration)
+        
+        cp_raw = cp_raw[:,start_index:end_index]
         self.Nt = np.shape(cp_raw)[1]
-        self.time_step = 1.0/self.sampling_rate
-        self.time = np.arange(0.0, self.test_duration, self.time_step)
+        self.time = np.arange(self.start_time, self.end_time, self.time_step)
 
         for i in range(self.tap_count):
             self.taps[i].cp = cp_raw[i,:]
-                    
-            
+                      
+    def _read_wind_profile(self):
+        
+        self.wind_profile = np.loadtxt(self.profile_file_name)       
 
+        
     def _create_taps(self):
         """
         Creates taps reading information from a text file. The tap coordinate should be formated as: 
@@ -90,6 +111,8 @@ class PIM:
             tap_index += 1   
         
         self.tap_count = len(self.taps)
+        
+        self._read_wind_profile()
         
         self._read_cp_data()
         
@@ -117,30 +140,44 @@ class PIM:
                     self.faces[j].taps.append(self.taps[i])
 
 
-#    def _correct_cp_to_building_height(self):
-#        
-#        #Correct the velocity using the velocity ratio of 
-#        #ESDU profile at two points, the gradient 
-#        uref = 20.0
-#        zref = 10.0
-#
-#        esdu = ESDU(uref, zref, self.z0)
-#        z_gradient = 1.4732 # Gradient wind tunnle height
-#        u_grdient = esdu.get_V_z(self.scale*z_gradient)
-#        u_h = esdu.get_V_z(self.scale*self.height)
-#        
-#        corr = (u_grdient/u_h)**2.0
-#        
-#        print(corr)
-#        
-#        self.cp_data = self.cp_data*corr
-         
-
+    def _get_cp_correction_factor(self):
+        
+        #Correct cp with velocity ratio at roof-height and gradient height 
+        u_grdient = self.get_Uav(self.gradient_height)
+        u_h = self.get_Uav(self.z_ref)
+                
+        corr = (u_grdient/u_h)**2.0
+        
+        return corr
+    
+    def create_rings(self):
+        
+        tap_z = np.zeros(self.tap_count)
+        
+        for i in range(self.tap_count):
+            tap_z[i] = self.taps[i].coord.z 
+        
+        self.ring_height = np.unique(np.sort(tap_z))
+        
+        for i in range(len(self.ring_height)):
+            ring_taps  = []
+            for j in range(self.tap_count):
+                if self.ring_height[i] == self.taps[j].coord.z:
+                    ring_taps.append(self.taps[j])
+            self.ring_taps.append(ring_taps)
+    
+    def get_Uav(self, z):
+        return np.interp(z, self.wind_profile[:,0], self.wind_profile[:,1])
+    
+    def get_Iu(self, z):
+        return np.interp(z, self.wind_profile[:,0], self.wind_profile[:,2])
+    
     def _find_tap(self, name):
                 
         for tap in self.taps:
             if tap.name == name:
                 return tap
+    
             
     def _remove_broken_taps(self):
         """
