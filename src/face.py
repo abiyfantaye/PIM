@@ -15,6 +15,17 @@ class Face:
         self.trib_areas = []    #tributary area for each tap         
         self.cp = []            #
         self.taps = []
+        if self.name == 'North':
+            self.plot_name = 'Front'
+        if self.name == 'West':
+            self.plot_name = 'Right'
+        if self.name == 'South':
+            self.plot_name = 'Back'
+        if self.name == 'East':
+            self.plot_name = 'Left'
+        if self.name == 'Top':
+            self.plot_name = 'Roof'
+
     
     def get_coordinates(self):
         n_taps  = len(self.taps)
@@ -47,7 +58,20 @@ class Face:
         for i in range(n_taps):
             cp[i,:] = self.taps[i].cp
                         
-        return cp        
+        return cp    
+    
+    def find_nearest_tap(self, tap):
+        
+        dist = 1.0e20
+        nearest_tap = []
+        
+        for i in range(len(self.taps)):
+            diff = self.taps[i].coord - tap.coord
+            if diff.mag() < dist and tap.name != self.taps[i].name:
+                dist  = diff.mag()
+                nearest_tap = self.taps[i] 
+        
+        return nearest_tap
     
     def __calculate_tributary_area(self):
         cp_data = np.loadtxt(self.Cp_file_path)

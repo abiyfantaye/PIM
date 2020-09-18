@@ -18,16 +18,16 @@ class Plotter:
         """
         linewidth = 1.5
         ox = 0.5
-        oy = 0.25
-        width = 0.8
-        depth = 0.15
+        oy = 0.75
+        width = 0.75
+        depth = 0.5
 
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.spines['left'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
         
-        ax.plot([ox,ox], [0.15*oy, oy-depth/2.0], 'k-.', linewidth=1.25)
+        ax.plot([ox,ox], [0.1*oy, oy-depth/2.0], 'k-.', linewidth=1.25)
         border = patches.Rectangle((ox-width/2.0, oy-depth/2.0 ), width , depth, linewidth=linewidth,edgecolor='k',facecolor='grey')
         ax.add_patch(border)
 
@@ -36,9 +36,9 @@ class Plotter:
         
         arw1_r = oy-depth/2.0
         
-        arw1_x1 = ox + 1.5*arw1_r*np.sin(np.deg2rad(45))
+        arw1_x1 = ox + arw1_r*np.sin(np.deg2rad(30))
         arw1_x2 = ox
-        arw1_y1 = arw1_r - 1.1*arw1_r*np.cos(np.deg2rad(45))
+        arw1_y1 = arw1_r - arw1_r*np.cos(np.deg2rad(30))
         arw1_y2 = oy-depth/2.0
         
         arw1 = patches.FancyArrowPatch(posA=(arw1_x1, arw1_y1), posB=(arw1_x2, arw1_y2), **kw)
@@ -49,8 +49,9 @@ class Plotter:
         ax.set_xticks([])
         ax.set_xlim(0.0, 1.0)
         ax.set_ylim(0.0, 1.0)
+        
 
-    def _interpolate_cp(self, face, nx, ny):        
+    def _interpolate_cp(self, face, nx, ny, value_type, method='linear'):        
 
         cp = face.get_cp()
         x_tap, y_tap = face.get_coordinates() 
@@ -65,17 +66,25 @@ class Plotter:
         else:
             y_grid_face = np.linspace(0.0, face.height, ny)
 
-        z = np.mean(cp, axis=1)    
+        if value_type == 'mean':
+            z = np.mean(cp, axis=1)
+        if value_type == 'rms':
+            z = np.std(cp, axis=1)
+        if value_type == 'inst':
+            z = cp[:,100]
+            
         X, Y = np.meshgrid(x_grid, y_grid)
-        Z = griddata((x_tap, y_tap), z, (X, Y), method='linear')       
-        f = interpolate.interp2d(x_grid, y_grid, Z, kind='linear')
+        Z = griddata((x_tap, y_tap), z, (X, Y), method=method)       
+        f = interpolate.interp2d(x_grid, y_grid, Z, kind=method)
         
         
         X_face, Y_face = np.meshgrid(x_grid_face, y_grid_face)
         Z_face = f(x_grid_face, y_grid_face)
         return X_face, Y_face, Z_face
-        
-    def plot(self):
+  
+#    def _get_data_range(self, data):
+                
+    def plot(self, value_type = 'mean'):
         
         n_plots = len(self.model.faces)
         scale = self.model.scale
@@ -104,111 +113,85 @@ class Plotter:
         plt.rc('legend', fontsize=legend_font_size)
         plt.rc('text', usetex=True)
         
-        markersize = 5
+        markersize = 4
         linewidth = 1.25  
         
         gs = gridspec.GridSpec(1, n_plots, width_ratios=width_ratio, wspace=0.1, hspace=0.001) 
-        gs0 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], height_ratios=[1.0, 5.0])
+        gs0 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs[4], height_ratios=[1.0, 3.0, 1.5])
         
         nx = 100
         ny = 100
         
         color_map = 'jet'
+                
+        if value_type == 'mean':
+            data_range = np.linspace(-1.5, 1.0, num=35)
+            ticks=np.linspace(-1.5, 1.0, num=6)
+        if value_type == 'rms':
+            data_range = np.linspace(0.0, 0.5, num=35)
+            ticks=np.linspace(0.0, 0.6, num=5)
+        if value_type == 'inst':
+            data_range = np.linspace(-1.5, 1.5, num=35)
+            ticks=np.linspace(-1.5, 1.0, num=6)
+
+        interp_method = 'linear'
 
         #plot the four side faces
         for i in range(n_plots-1):   
             face = self.model.faces[i]         
             ax = fig.add_subplot(gs[i])
             x,y = face.get_coordinates()
-            ax.plot(scale*x, scale*y, '+', markersize=markersize)
+            ax.plot(scale*x, scale*y, 'k+', markersize=markersize)
             
-            X,Y,Z = self._interpolate_cp(face, nx, ny)
-            ax.contourf(scale*X, scale*Y, Z, cmap=color_map)
+            X,Y,Z = self._interpolate_cp(face, nx, ny, value_type, method=interp_method)            
+            
+            cs = ax.contour(scale*X, scale*Y, Z, data_range, colors='k',alpha=0.75, linewidths=0.75, linestyles='solid')            
+#            ax.clabel(cs, fmt='%2.1f', colors='k', fontsize=14)
 
-            ax.set_title(face.name + ' Wall')
+            cs = ax.contourf(scale*X, scale*Y, Z, data_range, cmap=color_map)
+            
+
+            ax.set_title(face.plot_name)
             ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
             ax.set_ylim(0.00,scale*face.height)  
             if face.name != 'North':
-                ax.set_yticks([])
+                ax.set_yticks([])            
             
-            for j in range(len(face.taps)):
-                ax.text(scale*x[j], scale*y[j], face.taps[j].name, fontsize=12,rotation=45)
+#            ax.clabel(cs, fmt='%2.1f', colors='k', fontsize=12, inline=1)
+
                 
         #plot the roof 
         if self.plot_top == True:
             face = self.model.faces[-1]             
             ax = fig.add_subplot(gs0[0])
             x,y = face.get_coordinates()
-            ax.plot(scale*x, scale*y, '+', markersize=markersize)
+            ax.plot(scale*x, scale*y, 'k+', markersize=markersize)
             
-            X,Y,Z = self._interpolate_cp(face, nx, ny)
-            ax.contourf(scale*X, scale*Y, Z, cmap=color_map)
+            X,Y,Z = self._interpolate_cp(face, nx, ny, value_type, method=interp_method)
+            cs = ax.contour(scale*X, scale*Y, Z, data_range, colors='k',alpha=0.75, linewidths=0.75, linestyles='solid')            
 
-            ax.set_title('Roof')
+            cs = ax.contourf(scale*X, scale*Y, Z, data_range, cmap=color_map)
+
+            ax.set_title(face.plot_name)
             ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
             ax.set_ylim(-scale*face.height/2.0, scale*face.height/2.0)
             ax.yaxis.set_ticks_position('right')            
             
-            for j in range(len(face.taps)):
-                ax.text(scale*x[j], scale*y[j], face.taps[j].name, fontsize=12,rotation=45)
-            
-        #plot the key 
-            
+        #plot the legend 
         ax = fig.add_subplot(gs0[1])
-        self.plot_key(ax)
+        ax.set_visible(False)
+        cbar = fig.colorbar(cs, ax=ax, fraction=1.0, aspect=12.5, ticks=ticks)
+        cbar.ax.set_ylabel('$C_p$')   
 
-            
+        
+        #plot the key 
+        ax = fig.add_subplot(gs0[2])
+        self.plot_key(ax)
+        
+
+        
+        
         fig.set_size_inches(35/2.54, 50/2.54)
 
         plt.tight_layout()
         plt.show()
-#        
-#        
-#        for i in range(len(self.north)):
-#            ax.plot(self.taps[self.north[i]].y, self.taps[self.north[i]].z, 'k+', markersize=markersize)
-##            ax.text(self.taps[self.north[i]].y, self.taps[self.north[i]].z, self.taps[self.north[i]].tag, fontsize=7,rotation=45)
-#            
-#        ax = fig.add_subplot(1, n_plots, 2)            
-#        ax.axis('off')
-#        border = patches.Rectangle((-self.depth/2.0,0.0 ), self.depth , self.height, linewidth=linewidth,edgecolor='k',facecolor='none')
-#        ax.add_patch(border)
-#        ax.set_title('West')
-#        ax.set_ylim(0.00,self.height) 
-#        for i in range(len(self.west)):
-#            ax.plot(self.taps[self.west[i]].x, self.taps[self.west[i]].z, 'k+', markersize=markersize)
-##            ax.text(self.taps[self.west[i]].x, self.taps[self.west[i]].z, self.taps[self.west[i]].tag, fontsize=7,rotation=45)
-##
-##            
-#        ax = fig.add_subplot(1, n_plots, 3)            
-#        ax.axis('off')
-#        border = patches.Rectangle((-self.width/2.0,0.0 ), self.width , self.height, linewidth=linewidth,edgecolor='k',facecolor='none')
-#        ax.add_patch(border)
-#        ax.set_title('South')            
-#        ax.set_ylim(0.00,self.height)   
-#        for i in range(len(self.south)):
-#            ax.plot(self.taps[self.south[i]].y, self.taps[self.south[i]].z, 'k+', markersize=markersize)
-##            ax.text(self.taps[self.south[i]].y, self.taps[self.south[i]].z, self.taps[self.south[i]].tag, fontsize=7,rotation=45)            
-##
-#        ax = fig.add_subplot(1, n_plots, 4)           
-#        ax.axis('off')
-#        border = patches.Rectangle((-self.depth/2.0,0.0 ), self.depth , self.height, linewidth=linewidth,edgecolor='k',facecolor='none')
-#        ax.add_patch(border)
-#        for i in range(len(self.east)):
-#            ax.plot(self.taps[self.east[i]].x, self.taps[self.east[i]].z, 'k+', markersize=markersize)
-##            ax.text(self.taps[self.east[i]].x, self.taps[self.east[i]].z, self.taps[self.east[i]].tag, fontsize=7,rotation=45)
-##
-##
-##        ax = fig.add_subplot(1, n_plots, 5)            
-##        ax.axis('off')
-##        border = patches.Rectangle((-self.depth/2.0, -self.width/2.0), self.depth , self.width, linewidth=linewidth, edgecolor='r', facecolor='none')
-##        ax.add_patch(border)        
-##        ax.set_title('East')            
-##        for i in range(len(self.top)):
-##            ax.plot(self.taps[self.top[i]].x, self.taps[self.top[i]].y, 'k+', markersize=markersize)
-##            ax.text(self.taps[self.top[i]].x, self.taps[self.top[i]].y, self.taps[self.top[i]].tag, fontsize=7,rotation=90)
-#        
-#        fig.set_size_inches(30/2.54, 75/2.54)    
-#        plt.tight_layout()
-#        plt.show()
-#
-# 

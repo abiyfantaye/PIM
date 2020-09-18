@@ -28,7 +28,7 @@ u_ref = 12.6
 gradient_height = 1.47
 gradient_wind_speed = 15.0
 scale = 400.0
-broken_taps = []
+broken_taps = ['110', '1014', '2315', '613']
 
 
 caarc = pim.PIM(cp_file_name=cp_file_name,
@@ -53,7 +53,7 @@ caarc = pim.PIM(cp_file_name=cp_file_name,
 
 #caarc.tap_count
 a  = draw.Plotter(caarc)
-a.plot()
+a.plot(value_type='rms')
 
 #
 #caarc.plot_faces_with_taps()
