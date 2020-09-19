@@ -28,6 +28,11 @@ class Face:
 
     
     def get_coordinates(self):
+        """
+        Returns location of the taps in local coordinate. 
+        
+        The left bottom cornner of the face is taken as the origin.
+        """
         n_taps  = len(self.taps)
         x = np.zeros(n_taps)
         y = np.zeros(n_taps)
@@ -37,13 +42,13 @@ class Face:
                 x[i] = -self.taps[i].coord.y 
                 y[i] = self.taps[i].coord.z 
             if self.name == 'West':
-                x[i] = self.taps[i].coord.x  
+                x[i] = -self.taps[i].coord.x  
                 y[i] = self.taps[i].coord.z 
             if self.name == 'South':
                 x[i] = self.taps[i].coord.y 
                 y[i] = self.taps[i].coord.z 
             if self.name == 'East':
-                x[i] = -self.taps[i].coord.x 
+                x[i] = self.taps[i].coord.x 
                 y[i] = self.taps[i].coord.z 
             if self.name == 'Top':
                 x[i] = self.taps[i].coord.y 

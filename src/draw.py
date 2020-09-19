@@ -57,15 +57,16 @@ class Plotter:
         cp = face.get_cp()
         x_tap, y_tap = face.get_coordinates() 
         
+        
         x_grid = np.linspace(np.min(x_tap), np.max(x_tap), nx)
         y_grid = np.linspace(np.min(y_tap), np.max(y_tap), ny)
         
-        x_grid_face = np.linspace(-face.width/2.0, face.width/2.0, nx)
         
-        if face.name == "Top":
-            y_grid_face = np.linspace(-face.height/2.0, face.height/2.0, nx)
-        else:
-            y_grid_face = np.linspace(0.0, face.height, ny)
+        extent = face.get_extent_coordinates()
+        
+        x_grid_face = np.linspace(extent[0,0], extent[1,0], nx)
+        y_grid_face = np.linspace(extent[1,1], extent[2,1], nx)
+
 
         if value_type == 'mean':
             z = np.mean(cp, axis=1)
@@ -180,8 +181,9 @@ class Plotter:
             cs = ax.contourf(scale*X, scale*Y, Z, data_range, cmap=color_map)
 
             ax.set_title(face.plot_name)
-            ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
-            ax.set_ylim(0.00,scale*face.height)  
+            extent = face.get_extent_coordinates()
+            ax.set_xlim(scale*extent[0,0], scale*extent[1,0])
+            ax.set_ylim(scale*extent[1,1], scale*extent[2,1])  
             if face.name != 'North':
                 ax.set_yticks([])            
                 
@@ -198,8 +200,9 @@ class Plotter:
             cs = ax.contourf(scale*X, scale*Y, Z, data_range, cmap=color_map)
 
             ax.set_title(face.plot_name)
-            ax.set_xlim(-scale*face.width/2.0, scale*face.width/2.0)
-            ax.set_ylim(-scale*face.height/2.0, scale*face.height/2.0)
+            extent = face.get_extent_coordinates()
+            ax.set_xlim(scale*extent[0,0], scale*extent[1,0])
+            ax.set_ylim(scale*extent[1,1], scale*extent[2,1])  
             ax.yaxis.set_ticks_position('right')            
             
         #plot the legend 

@@ -186,7 +186,35 @@ class PIM:
         
         self._calculate_forces()
         self._calculate_moments()
+    
+    
+    def get_two_third_H_cp(self):
+        """
+        Calculates the cp at the 2/3 height of the building for comparison 
+        with litrature. 
         
+        Returns
+        -------
+        x : distance on the surface from the left corner of the North face
+        Cp: Cp values 
+        
+        """
+        
+        H23 = self.height*(2.0/3.0)
+        
+        index = np.where(self.ring_height==H23)
+        
+        n_taps = len(self.ring_taps[index])
+        
+        corn_point = Point(self.building_width/2.0)
+        
+        x = np.zeros(n_taps)
+        Cp = np.zeros((n_taps, self.Nt))
+        
+        for i in range(n_taps):
+            Cp[i,:] = self.ring_taps[index].Cp
+        
+        return  x, Cp
     
     def _create_rings(self):
         
