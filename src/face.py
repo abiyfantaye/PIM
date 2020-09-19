@@ -100,7 +100,7 @@ class Face:
     
     def create_tributary_area(self):
         
-        from scipy.spatial import Voronoi, voronoi_plot_2d
+        from scipy.spatial import Voronoi #, voronoi_plot_2d
         from shapely.geometry import Polygon
 
         x,y = self.get_coordinates()
@@ -133,16 +133,7 @@ class Face:
             self.trib_areas[i] = poly.area
         
         #print(self.trib_areas)
-        #plt.show()
-    
-    def face_force(self, rho, U_ref):
-        cp_data = np.loadtxt(self.Cp_file_path)
-
-        self.cp_data = np.zeros((self.tap_count, np.shape(cp_data)[1]))
-        
-        for i in range(self.tap_count):
-            self.cp_data[i,:] = cp_data[i,:]
-            
+        #plt.show()   
             
     def voronoi_finite_polygons_2d(self, vor, radius=None):
         """

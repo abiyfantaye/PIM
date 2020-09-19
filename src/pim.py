@@ -26,7 +26,9 @@ class PIM:
                  test_duration,
                  start_time,
                  end_time,
-                 z0, u_ref, 
+                 rho,
+                 z0, 
+                 u_ref, 
                  z_ref, 
                  gradient_height, 
                  scale, 
@@ -52,6 +54,7 @@ class PIM:
         self.building_depth = building_depth
         self.sampling_rate = sampling_rate
         self.test_duration = test_duration
+        self.rho = rho
         self.z0 = z0
         self.u_ref = u_ref
         self.z_ref = z_ref            
@@ -125,11 +128,11 @@ class PIM:
         """
         #create each face
         
-        self.faces.append(Face('North', self.building_width,self.building_height, Point(-1.0, 0.0, 0.0)))        
-        self.faces.append(Face('West', self.building_depth,self.building_height, Point(0.0, -1.0, 0.0)))
-        self.faces.append(Face('South', self.building_width,self.building_height, Point(1.0, 0.0, 0.0)))
-        self.faces.append(Face('East', self.building_depth,self.building_height, Point(0.0, 1.0, 0.0)))
-        self.faces.append(Face('Top', self.building_width, self.building_depth, Point(0.0, 0.0, 1.0)))
+        self.faces.append(Face('North', self.building_width,self.building_height, Point(1.0, 0.0, 0.0)))        
+        self.faces.append(Face('West', self.building_depth,self.building_height, Point(0.0, 1.0, 0.0)))
+        self.faces.append(Face('South', self.building_width,self.building_height, Point(-1.0, 0.0, 0.0)))
+        self.faces.append(Face('East', self.building_depth,self.building_height, Point(0.0, -1.0, 0.0)))
+        self.faces.append(Face('Top', self.building_width, self.building_depth, Point(0.0, 0.0, -1.0)))
         
         self.face_count  = len(self.faces)
 
@@ -150,7 +153,42 @@ class PIM:
         
         return corr
     
-    def create_rings(self):
+    def _calculate_forces(self):
+        
+        self.forces = np.zeros((3, self.Nt))
+
+        for face in self.faces:
+            for i in range(len(face.taps)):
+                force = 0.5*self.rho*(self.u_ref**2.0)*face.taps[i].cp*face.trib_areas[i]
+                self.forces[0,:] += face.normal.x*force
+                self.forces[1,:] += face.normal.y*force
+                self.forces[2,:] += face.normal.z*force
+
+    
+    def _calculate_moments(self):
+        
+        self.moments = np.zeros((3, self.Nt))
+
+        for face in self.faces:
+            for i in range(len(face.taps)):
+                force = 0.5*self.rho*(self.u_ref**2.0)*face.taps[i].cp*face.trib_areas[i]
+                r_x_n  = np.cross(face.taps[i].coord.array(), face.normal.array())
+                self.moments[0,:] += r_x_n[0]*force
+                self.moments[1,:] += r_x_n[1]*force
+                self.moments[2,:] += r_x_n[2]*force
+                
+    def calculate_all(self):
+        
+        self._create_rings()
+        
+        for face in self.faces:
+            face.create_tributary_area()
+        
+        self._calculate_forces()
+        self._calculate_moments()
+        
+    
+    def _create_rings(self):
         
         tap_z = np.zeros(self.tap_count)
         

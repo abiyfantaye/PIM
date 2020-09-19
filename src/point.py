@@ -22,3 +22,11 @@ class Point:
     
     def mag(self):
         return np.sqrt(self.x**2 + self.y**2 + self.z**2)
+    
+    def array(self):
+        arry = np.zeros(3)
+        arry[0] = self.x;
+        arry[1] = self.y;
+        arry[2] = self.z;
+        
+        return arry

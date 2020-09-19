@@ -27,13 +27,13 @@ sampling_rate = 400
 test_duration = 120
 start_time = 0.0
 end_time = test_duration
+rho = 1.225
 z0 = 0.03
 z_ref = 0.4572
 u_ref = 12.6         
 gradient_height = 1.4732
 scale = 400.0
 broken_taps = ['110','613','1014', '1213', '2315', ]
-
 
 caarc = pim.PIM(cp_file_name=cp_file_name,
                 tap_file_name=tap_file_name,
@@ -48,6 +48,7 @@ caarc = pim.PIM(cp_file_name=cp_file_name,
                 test_duration=test_duration,
                 start_time=start_time,
                 end_time = end_time,
+                rho = rho,
                 z0=z0, 
                 u_ref=u_ref, 
                 z_ref=z_ref, 
@@ -57,9 +58,8 @@ caarc = pim.PIM(cp_file_name=cp_file_name,
 
 
 
-caarc.create_rings()
-caarc.faces[0].create_tributary_area()
-#plt.plot(caarc.time, caarc.faces[0].taps[0].cp)
+caarc.calculate_all()
+plt.plot(caarc.time, caarc.moments[0,:])
 
 #caarc.tap_count
 a  = draw.Plotter(caarc)
