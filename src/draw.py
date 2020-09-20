@@ -225,4 +225,4 @@ class Plotter:
         if  save_path != '':      
             plt.savefig(save_path)
         plt.show()
-#        plt.close()
+        plt.close()
