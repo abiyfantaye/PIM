@@ -17,7 +17,7 @@ class PIM:
                  tap_file_name,
                  wind_direction,
                  profile_file_name,
-                 exposure_name,
+                 case_name,
                  correct_cp,
                  building_width, 
                  building_depth,                  
@@ -47,7 +47,7 @@ class PIM:
         self.tap_file_name = tap_file_name
         self.wind_direction = wind_direction
         self.profile_file_name = profile_file_name
-        self.exposure_name = exposure_name
+        self.case_name = case_name
         self.correct_cp = correct_cp
         self.building_height = building_height
         self.building_width = building_width
@@ -200,21 +200,22 @@ class PIM:
         
         """
         
-        H23 = self.height*(2.0/3.0)
+        H23 = self.building_height*(2.0/3.0)
         
-        index = np.where(self.ring_height==H23)
+        X = [] 
+        CP = []
+        x_old = 0.0
+            
+        for i in range(self.face_count-2):
+            x, cp = self.faces[i].find_horizontal_taps(H23)
+            x = x 
+            
+            for j in range(len(x)):
+                X.append(x[j] + x_old)
+                CP.append(cp[j,:])
+            x_old += self.faces[i].width
         
-        n_taps = len(self.ring_taps[index])
-        
-        corn_point = Point(self.building_width/2.0)
-        
-        x = np.zeros(n_taps)
-        Cp = np.zeros((n_taps, self.Nt))
-        
-        for i in range(n_taps):
-            Cp[i,:] = self.ring_taps[index].Cp
-        
-        return  x, Cp
+        return  np.asarray(X), np.asarray(CP)
     
     def _create_rings(self):
         

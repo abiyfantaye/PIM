@@ -37,7 +37,7 @@ class Plotter:
         
         arw1_r = oy-depth/2.0
         
-        arw1_x1 = ox + arw1_r*np.sin(np.deg2rad(30))
+        arw1_x1 = ox - arw1_r*np.sin(np.deg2rad(30))
         arw1_x2 = ox
         arw1_y1 = arw1_r - arw1_r*np.cos(np.deg2rad(30))
         arw1_y2 = oy-depth/2.0
@@ -113,7 +113,7 @@ class Plotter:
         plt1.show()
         
         
-    def plot_cp(self, value_type = 'mean'):
+    def plot_cp(self, value_type = 'mean', save_path = ''):
         
         n_plots = len(self.model.faces)
         scale = self.model.scale
@@ -129,7 +129,7 @@ class Plotter:
         font_size=18
         legend_font_size=20
         axis_font_size=14
-        num_contours = 35
+        num_contours = 50
         
         font = {'family' : 'Times New Roman','weight' : 'normal', 'size'   : font_size}
         plt.rcParams['xtick.major.pad'] = 10
@@ -154,11 +154,11 @@ class Plotter:
         color_map = 'jet'
                 
         if value_type == 'mean':
-            data_range = np.linspace(-1.5, 1.0, num=num_contours)
-            ticks=np.linspace(-1.5, 1.0, num=6)
+            data_range = np.linspace(-2.0, 1.0, num=num_contours)
+            ticks=np.linspace(-2.0, 1.0, num=7)
         if value_type == 'rms':
-            data_range = np.linspace(0.0, 0.5, num=num_contours)
-            ticks=np.linspace(0.0, 0.6, num=5)
+            data_range = np.linspace(0.0, 1.0, num=num_contours)
+            ticks=np.linspace(0.0, 1.0, num=6)
         if value_type == 'inst':
             data_range = np.linspace(-1.5, 1.5, num=num_contours)
             ticks=np.linspace(-1.5, 1.0, num=6)
@@ -215,7 +215,14 @@ class Plotter:
         ax = fig.add_subplot(gs0[2])
         self.plot_key(ax)
         
-        
-        fig.set_size_inches(35/2.54, 50/2.54)
+        if value_type=='mean':
+            plt.suptitle('Mean pressure coefficients')
+        if value_type=='rms':
+            plt.suptitle('RMS pressure coefficients') 
+            
+        fig.set_size_inches(50/2.54, 50/2.54)
         plt.tight_layout()
+        if  save_path != '':      
+            plt.savefig(save_path)
         plt.show()
+#        plt.close()

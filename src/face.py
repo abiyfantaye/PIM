@@ -51,8 +51,8 @@ class Face:
                 x[i] = self.taps[i].coord.x 
                 y[i] = self.taps[i].coord.z 
             if self.name == 'Top':
-                x[i] = self.taps[i].coord.y 
-                y[i] = -self.taps[i].coord.x
+                x[i] = -self.taps[i].coord.y 
+                y[i] = self.taps[i].coord.x
                         
         return x, y
     
@@ -102,6 +102,34 @@ class Face:
                 nearest_tap = self.taps[i] 
         
         return nearest_tap
+    
+    def find_horizontal_taps(self, h):
+        """
+        Finds all taps with elevation h in the local coordinate of the face.  
+        """
+        
+        x,y = self.get_coordinates()
+        n_taps = len(y)
+        
+        hor_taps = []
+        hor_taps_x = [] 
+        
+        for i in range(n_taps):
+            if np.isclose(h,y[i]):
+                hor_taps.append(self.taps[i])
+                hor_taps_x.append(x[i])
+        
+        indices = np.argsort(np.asarray(hor_taps_x))
+        
+        wall_x = np.zeros(len(indices))
+        
+        wall_cp = np.zeros((len(indices), len(self.taps[0].cp)))
+        
+        for i in range(len(indices)):
+            wall_x[i] = hor_taps_x[indices[i]] + self.width/2.0 
+            wall_cp[i,:] = hor_taps[indices[i]].cp 
+        
+        return wall_x, wall_cp
     
     def create_tributary_area(self):
         
