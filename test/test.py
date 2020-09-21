@@ -21,7 +21,7 @@ exposure_names = [3,30,70]
 
 n_exposures  = len(exposures)
 n_angles = len(wind_angles)
-wind_prof_names = ['t2exp3', 't2exp12', 't2exp15']
+wind_prof_names = ['t2exp3', 't2exp15', 't2exp12']
 tap_file_name = '../data/tap_file.txt'
 correct_cp = True
 building_height = 0.4572

@@ -57,7 +57,11 @@ class Face:
         return x, y
     
     def get_extent_coordinates(self):
-    
+        """
+        Returns the extent of the face in the local coordinate systme of the 
+        face. The origin of the face is located at the center of the bottom
+        line of the face. 
+        """
         xy = np.zeros((4, 2))        
 
         #Point 1
@@ -82,6 +86,10 @@ class Face:
         return xy
     
     def get_cp(self):
+        """
+        Returns the cp data for the face in array form extracting from 
+        each tap located on the face.
+        """
         n_taps  = len(self.taps)
         cp = np.zeros((n_taps,len(self.taps[0].cp)))
         
@@ -105,7 +113,8 @@ class Face:
     
     def find_horizontal_taps(self, h):
         """
-        Finds all taps with elevation h in the local coordinate of the face.  
+        Finds all taps with elevation h in the local coordinate system
+        of the face.  
         """
         
         x,y = self.get_coordinates()
@@ -132,7 +141,9 @@ class Face:
         return wall_x, wall_cp
     
     def create_tributary_area(self):
-        
+        """
+        Creates tributary area for taps using Voronoi cells. 
+        """
         from scipy.spatial import Voronoi #, voronoi_plot_2d
         from shapely.geometry import Polygon
 

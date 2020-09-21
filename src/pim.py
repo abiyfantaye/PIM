@@ -10,7 +10,7 @@ import CWE as cwe
 
    
 class PIM:
-    """A class representing Pressure Integration Model(PIM)"""
+    """A class representing a Pressure Integration Model(PIM)"""
 
     def __init__(self, 
                  cp_file_name, 
@@ -73,7 +73,10 @@ class PIM:
         self._fix_broken_taps() # should be called after creating the faces
 
     def _read_cp_data(self):
-        
+        """
+        Reads the Cp data from a given text file. The cp is read in the order 
+        the taps are created. 
+        """
         self.time_step = 1.0/self.sampling_rate
         
         cp_raw = np.loadtxt(self.cp_file_name)
@@ -92,7 +95,10 @@ class PIM:
             self.taps[i].cp = cp_raw[i,:]
                       
     def _read_wind_profile(self):
-        
+        """
+        Reads BLWTL profiles(mean velocity and turbulence intesity) for correcting 
+        the Cp from the gradient height to building height. 
+        """
         self.wind_profile = np.loadtxt(self.profile_file_name)       
 
         
@@ -144,7 +150,10 @@ class PIM:
 
 
     def _get_cp_correction_factor(self):
-        
+        """
+        Calculates the correction factor for the cp using the square of the 
+        ratio of the mean velocity at gradieint height to the building height. 
+        """
         #Correct cp with velocity ratio at roof-height and gradient height 
         u_grdient = self.get_Uav(self.gradient_height)
         u_h = self.get_Uav(self.z_ref)
@@ -154,7 +163,9 @@ class PIM:
         return corr
     
     def _calculate_forces(self):
-        
+        """
+        Calculate the forces acting on the building in x, y and z directions. 
+        """
         self.forces = np.zeros((3, self.Nt))
 
         for face in self.faces:
@@ -166,7 +177,11 @@ class PIM:
 
     
     def _calculate_moments(self):
-        
+        """
+        Calculate the moments acting on the building in x, y and z directions.
+        The moment is calculated by the cross product of the potision vector for 
+        each tap by the force calculated for the tap.
+        """
         self.moments = np.zeros((3, self.Nt))
 
         for face in self.faces:
@@ -178,7 +193,9 @@ class PIM:
                 self.moments[2,:] += r_x_n[2]*force
                 
     def calculate_all(self):
-        
+        """
+        Calls all the functions that operate on the data.
+        """
         self._create_rings()
         
         for face in self.faces:
@@ -218,7 +235,9 @@ class PIM:
         return  np.asarray(X), np.asarray(CP)
     
     def _create_rings(self):
-        
+        """
+        Finds and creates rings of pressure taps.
+        """
         tap_z = np.zeros(self.tap_count)
         
         for i in range(self.tap_count):
