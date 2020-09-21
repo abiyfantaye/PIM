@@ -1,0 +1,23 @@
+#This file contains information about the wind tunnle experiment. 
+
+Test duration(sec): 120
+Sampling rate(Hz): 400
+Number of samples: 48000
+Number of taps:	   367
+Number of inputs: 384
+
+The total number of measurment inputs in the wind tunnel is greater than the 
+number of taps used. The tap count is 367 while the number of measurment points 
+from the wind tunnel is 384, the remaining taps are measurments of other probes 
+placed for monitoring perpose in the wind tunnel.  
+
+The following profiles are used: 
+
+Open – Profile 3
+
+Suburban– Profile 15
+
+Urban – Profile 12 (I noticed you don’t have that page)
+
+Blorken taps: ['110','613','1014', '1213', '2315']
+  
